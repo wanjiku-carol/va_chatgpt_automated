@@ -1,18 +1,21 @@
-from typing import List
+import os
 import speech_recognition as sr
 import pyttsx3
 
 # Initialize the speech recognition and text-to-speech engines
 r = sr.Reognizer()
 engine = pyttsx3.init()
+file_path = os.dir
+
+
 
 # Define a function to speak the text
-def speak(text: str) -> None:
+def speak(text):
     engine.say(text)
     engine.runAndWait()
 
 # Define funtion to recognise speech
-def listen() -> None:
+def listen():
     with sr.Microphone() as source:
         print("Speak now ...")
         audio = r.listen(source)
@@ -34,27 +37,26 @@ def save_task(task, tasks):
 
 def initialise_app():
     while True:
-        
         tasks = []
         commands_dict = {
-           remind_me_command: "remind me",
-           create_list_command:  
+           rm_command: "remind me",
+           cl_command:  "create a todo list"
         }
         # listens for user input
         command = listen()
         
-        if tasks is None and command is None:
+        if len(tasks) == 0 and command is None:
             return "There are no tasks on your todo list"
         
-        remind_me_command = "remind me"
-        create_list_command = "create a todo list" 
+        # remind_me_command = "remind me"
+        # create_list_command = "create a todo list" 
         
-        if remind_me_command in command:
+        if commands_dict[rm_command] in command:
             speak("What would you like me to remind you about?")
             reminder = listen()
             speak(f"Sure, I'll remind you to {reminder} later")
             
-        elif create_list_command in command:
+        elif commands_dict[cl_command] in command:
             speak("What tasks do you want to add?")
             task = command
             save_task(task, tasks)
@@ -62,3 +64,6 @@ def initialise_app():
             speak("Here's your todo list")
             for i, task in enumerate(tasks):
                 speak(f"{i+1}. {task}")
+                
+def read_article(article):
+    pass
