@@ -5,7 +5,7 @@ from gtts import gTTS
 
 class ReadAudio:
     """
-    Class ReadAudio wil implement reading of a text file into audio
+    Class ReadAudio will implement reading of a text file into audio
     function extract_text_from_pdf & extract_text_from_docx: Extracts text from a PDF or Word document.
     function text_to_speech: Converts the extracted text into speech using gTTS.
     Saves the speech as an MP3 file.
@@ -65,5 +65,4 @@ def run():
     pdffile = os.path.join(directory_name, file_name)
     pdf_file_instance = ReadAudio(pdffile)
     docx_file_instance = ReadAudio()
-    text_to_speech(pdf_file_instance.extract_text_from_pdf, output_audio=None)
-    pass
+    return text_to_speech(pdf_file_instance.extract_text_from_pdf, output_audio=None)
