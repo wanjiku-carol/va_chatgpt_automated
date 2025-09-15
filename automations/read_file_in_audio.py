@@ -2,6 +2,8 @@ import os
 import fitz  # PyMuPDF
 import docx
 from gtts import gTTS
+from pydub import AudioSegment
+from pydub.silence import split_on_silence
 
 class ReadAudio:
     """

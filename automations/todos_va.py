@@ -14,8 +14,9 @@ def callback(recognizer, audio):
     except sr.RequestError as e:
         print(f"Could not request results from Google Speech Recognition")
 
+
+
 r = sr.Recognizer()
-# Define funtion to recognise speech
 def listen_to_user():
     """
     This function contains the script for listening to user 
@@ -23,16 +24,17 @@ def listen_to_user():
     :param: There are no parameters.
     :return: The text translated from the audio retreived through the microphone.
     """
-    print("======= listening to use ====")
+    print("Listening ...")
     with sr.Microphone() as source:
-        print("Microphone on ...")
-        r.adjust_for_ambient_noise(source, duration=0.2)
+        print("Microphone on..")
+        r.adjust_for_ambient_noise(source, duration=0.10)
         audio = r.listen(source)
         text = r.recognize_google(audio)
         if text != "stop":
             return text
     stop_listening = r.listen_in_background(source, callback)
     return stop_listening
+
 
 def say_something(command):
     """
@@ -42,8 +44,6 @@ def say_something(command):
     :param command: An audio format of words spoken by user
     :return engine.runAndWait(): an object's method for listening to audio prompts
     """
-    print("=== say something function ====")
-    print(f"Assistant: {command}")
     try:
         engine = pyttsx3.init()
         engine.say(command)
@@ -52,41 +52,55 @@ def say_something(command):
         print("Speech output not supported in Colab.")
 
 
-def add_task(task):
+def add_task(task, tasks):
     """
     A helper function that adds tasks to a dictionary to maintiain order 
     :param task: The tasks retreived from the user speaking on the microphone.
     :return added_tasks: A dictionary containing the tasks as the values and 
     incrementing numbers as the keys to maintain order.
     """
-    key = 0
-    added_tasks = {}
-    if task is None:
-        return added_tasks
+    count = 1
     
-    for key, val in added_tasks.items():
-        key += 1
+    for key, val in tasks.items():
+        key = count
         val = task
-        added_tasks[key] = val
-    return added_tasks
+        tasks[key] = val
+        key += 1
+    return tasks
 
+def take_command():
+    return input("You (type your command): ").lower()
+# def captured_audio(command, other_commands):
+#     other_commands.append(command)
+#     count = 1
+    
+#     for comm in other_commands:
+#         say_something(f"{count}: {comm}")
+#         other_commands.append(command)
+#         count += 1
+#         time.sleep(0.2)
+#     return other_commands
 
-
-def todos_assistant():
+def todos_assistant(): 
     """
+    TODO: SEPARATE THE ACTIVITIES OF SPEAKING AND SAVING
+    TODO: USE CALLBACKS TO BUY TIME
+    TODO: USE THE WHILE OUTSIDE THE FUNCTION
+    TODO: Research pydub.silence.split_on_silence
     The main function that receives todo tasks, saves them in the dictionary, and lists all of the tasks if asked to.
     The key words that trigger these actions are in the commands_dict.
     :param None: The tasks retreived from the user speaking on the microphone.
     :return say_something: Verbal responses from the virtual assistant affirming an added task or listing added tasks 
     """
+    tasks = {}
+    other_commands = []
+    
     while True:
         commands_dict = {
-            "remind_command": "remind me my tasks",
             "add_task_command": "add new task",
-            "yes_add_task": "yes",
             "list_tasks": "list my tasks"
         }
-
+        
         command = listen_to_user()
 
         time.sleep(0.1)
@@ -94,21 +108,35 @@ def todos_assistant():
             command(wait_for_stop=True)
             print("Recognition stopped.")
             break
-        else:    
+        elif command == "stop":
+            command(wait_for_stop=True)
+            print("Recognition stopped.")
+            break
+        else:
             if command == commands_dict["add_task_command"]:
                 new_task = listen_to_user()
-                add_task(new_task)
-                say_something(f'{new_task} added to todo list')
+                time.sleep(0.3)
+                add_task(new_task, tasks)
+                print(f'{new_task} has been added added to the todo list')
+                time.sleep(0.2)
+                say_something(f'{new_task} has been added to the todo list')
 
-                print("Speech output not supported in Colab.")
-                    
-            if command == commands_dict["list_tasks"]:
-                tasks = add_task(task=None)
-                say_something("Here's your todo list")
-                for key, task in enumerate(tasks):
+            if command == commands_dict["list_tasks"] and len(tasks) > 0:
+                say_something(f"Listing tasks")
+                time.sleep(0.2)
+                count = 1
+                for key, task in tasks.items():
+                    key = count
                     say_something(f"{key}. {task}")
+                    count += 1
+                    time.sleep(0.2)
+            # else:
+            #     if command not in commands_dict.values():
+            #         say_something(f"These are captured audio that weren't for the todo list")
+            #         captured_audio(command, other_commands)
+            #         time.sleep(0.2)
+            
 
-                print("Speech output not supported in Colab.")
             
         
 def run():

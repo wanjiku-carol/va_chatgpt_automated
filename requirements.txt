@@ -9,6 +9,7 @@ kombu==5.5.4
 packaging==25.0
 prompt_toolkit==3.0.52
 PyAudio==0.2.14
+pydub==0.25.1
 pyobjc==11.1
 pyobjc-core==11.1
 pyobjc-framework-Accessibility==11.1
