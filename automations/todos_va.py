@@ -9,14 +9,14 @@ import pyttsx3
 def callback(recognizer, audio):
     try:
         print("You said: " + recognizer.recognize_google(audio))
-    except sr.UnknownValueError:
-        print("Could not understand audio")
+    except sr.UnknownValueError as e:
+        return(f"Could not understand audio. \n Returned Error:{e}") 
     except sr.RequestError as e:
-        print(f"Could not request results from Google Speech Recognition")
-
+        return(f"Could not request results from Google Speech Recognition.\n Returned Error: {e}")
 
 
 r = sr.Recognizer()
+
 def listen_to_user():
     """
     This function contains the script for listening to user 
@@ -24,16 +24,19 @@ def listen_to_user():
     :param: There are no parameters.
     :return: The text translated from the audio retreived through the microphone.
     """
-    print("Listening ...")
     with sr.Microphone() as source:
         print("Microphone on..")
         r.adjust_for_ambient_noise(source, duration=0.10)
         audio = r.listen(source)
         text = r.recognize_google(audio)
-        if text != "stop":
-            return text
-    stop_listening = r.listen_in_background(source, callback)
-    return stop_listening
+        
+        stop_listening = r.listen_in_background(source, callback)
+        if text.lower() == "stop":
+            stop_listening
+    
+    
+    
+    return text.lower() # Small delay to avoid busy-waiting
 
 
 def speak(command):
@@ -62,7 +65,9 @@ except_list = [
 
 commands_dict = {
         "add_task_command": "add new task",
-        "list_tasks": "list my tasks"
+        "list_tasks": "list my tasks",
+        "no_tasks": "There are no tasks in the todo list.",
+        "greetings": "Hello. How can I help you today?"
     }
   
 def add_task(task):
@@ -90,25 +95,20 @@ def add_new_task(new_task):
     :param None: The tasks retreived from the user speaking on the microphone.
     :return say_something: Verbal responses from the virtual assistant affirming an added task or listing added tasks 
     """
-    tasks = add_task(task=None)
     time.sleep(0.2)
     print("Adding new task ...")
     
-    if len(tasks) == 0:
-        speak("There are no tasks in the todo list.")
-    
     speak(f"Would you like to add {new_task} to the todo list?")
     confirm = listen_to_user()
+    
     if confirm == "yes" and new_task not in except_list:
         add_task(new_task)
         print(f'{new_task} has been added added to the todo list')
         time.sleep(0.2)
-        return speak(f'{new_task} has been added to the todo list')
+        speak(f'{new_task} has been added to the todo list')
+        return
     elif confirm == "no":
-        speak("Please renter the task")
-        time.sleep(0.2)
-        new_task = listen_to_user()
-        add_new_task(new_task)
+        return
         
 
 
@@ -116,7 +116,7 @@ def list_tasks():
     speak("Would you like the list of tasks?")
     confirm = listen_to_user()
     
-    if confirm == "yes":
+    if confirm.lower() == "yes":
         print("Retreiving ....")
 
         tasks = add_task(task=None)
@@ -128,32 +128,33 @@ def list_tasks():
             speak(f"{task}")
             print(f"{key}. {task}")
             count += 1
-            time.sleep(0.3)
+            time.sleep(0.1)
+        return speak("That's all. Best of luck")
     elif confirm == "no":
-        speak("Request cancelled. Have a nice day!")
+        return speak("Request cancelled. Have a nice day!")
             
         
 def audio_virtual_assistant():
     
+    command = listen_to_user()
+    
     while True:
-        speak("Hello. How can I help you today?")
-        command = listen_to_user()
-        time.wait(0.2)
-        
-        if command == "stop":
-            command(wait_for_stop=True)
-            print("Recognition stopped.")
-            break
-        
-        if command == commands_dict["add_task_command"]:
-            speak("Which task would you like add?")
-            print("Listening ...")
-            time.wait(0.1)
-            new_task = listen_to_user()
-            add_new_task(new_task)
+        try:
             
-        elif command == commands_dict["list_tasks"]:
-            return list_tasks()
+            time.sleep(0.1)
+            
+            if command == commands_dict["add_task_command"]:
+                speak("Which task would you like add?")
+                print("Listening ...")
+                time.sleep(0.1)
+                new_task = listen_to_user()
+                add_new_task(new_task)
+                
+            elif command == commands_dict["list_tasks"]:
+                return list_tasks()
+            
+        except sr.UnknownValueError as e:
+            return(f"Could not understand audio. \n Returned Error:{e}")
     
 if __name__ == "__main__":
     audio_virtual_assistant()
