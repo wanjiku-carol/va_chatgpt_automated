@@ -7,6 +7,7 @@ from pydub.silence import split_on_silence
 
 class ReadAudio:
     """
+    TODO: Research pydub.silence.split_on_silence
     Class ReadAudio will implement reading of a text file into audio
     function extract_text_from_pdf & extract_text_from_docx: Extracts text from a PDF or Word document.
     function text_to_speech: Converts the extracted text into speech using gTTS.
