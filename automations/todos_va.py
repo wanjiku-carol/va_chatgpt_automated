@@ -34,8 +34,6 @@ def listen_to_user():
         if text.lower() == "stop":
             stop_listening
     
-    
-    
     return text.lower() # Small delay to avoid busy-waiting
 
 
@@ -53,6 +51,7 @@ def speak(command):
         engine.runAndWait()
     except:
         print("Speech output not supported in Colab.")
+        return
 
 
 
@@ -77,17 +76,12 @@ def add_task(task):
     :return added_tasks: A dictionary containing the tasks as the values and 
     incrementing numbers as the keys to maintain order.
     """
-    count = 1
-    tasks = {}
-    for key, val in tasks.items():
-        key = count
-        val = task
-        tasks[key] = val
-        key += 1
-    return tasks
+    
+    pass
 
+_tasks = {}
 
-def add_new_task(new_task): 
+def add_new_task(): 
     """
     TODO: USE THE WHILE OUTSIDE THE FUNCTION
     The main function that receives todo tasks, saves them in the dictionary, and lists all of the tasks if asked to.
@@ -95,66 +89,56 @@ def add_new_task(new_task):
     :param None: The tasks retreived from the user speaking on the microphone.
     :return say_something: Verbal responses from the virtual assistant affirming an added task or listing added tasks 
     """
+    
     time.sleep(0.2)
     print("Adding new task ...")
+    new_task = listen_to_user()
     
-    speak(f"Would you like to add {new_task} to the todo list?")
-    confirm = listen_to_user()
-    
-    if confirm == "yes" and new_task not in except_list:
-        add_task(new_task)
-        print(f'{new_task} has been added added to the todo list')
-        time.sleep(0.2)
-        speak(f'{new_task} has been added to the todo list')
-        return
-    elif confirm == "no":
-        return
+    if new_task not in except_list:
+        count = 1
+        for key, val in _tasks.items():
+            key = count
+            val = new_task
+            _tasks[key] = val
+            print(f'{new_task} has been added added to the todo list')
+            count += 1
+            time.sleep(0.1)
+            print(f'{new_task} has been added to the todo list')
+        return _tasks
+    else:
+        return print("Speech output not supported in Colab.")
         
 
 
 def list_tasks():
-    speak("Would you like the list of tasks?")
-    confirm = listen_to_user()
-    
-    if confirm.lower() == "yes":
-        print("Retreiving ....")
+    print("Retreiving ....")
+    if len(_tasks) == 0:
+        return print("There are no tasks in the todo list")
+    for key, task in _tasks.items():
+        key = count
+        speak(f"{task}")
+        print(f"{key}. {task}")
+        count += 1
+        time.sleep(0.1)
+    return print("That's all. Best of luck")
 
-        tasks = add_task(task=None)
-        time.sleep(0.1)
-        print("Retreiving ....")
-        time.sleep(0.1)
-        for key, task in tasks.items():
-            key = count
-            speak(f"{task}")
-            print(f"{key}. {task}")
-            count += 1
-            time.sleep(0.1)
-        return speak("That's all. Best of luck")
-    elif confirm == "no":
-        return speak("Request cancelled. Have a nice day!")
-            
         
 def audio_virtual_assistant():
     
     command = listen_to_user()
     
-    while True:
-        try:
-            
-            time.sleep(0.1)
-            
-            if command == commands_dict["add_task_command"]:
-                speak("Which task would you like add?")
-                print("Listening ...")
-                time.sleep(0.1)
-                new_task = listen_to_user()
-                add_new_task(new_task)
-                
-            elif command == commands_dict["list_tasks"]:
-                return list_tasks()
-            
-        except sr.UnknownValueError as e:
-            return(f"Could not understand audio. \n Returned Error:{e}")
+    while True:     
+        time.sleep(0.1)
+        
+        if command == "stop":
+            break
+        elif command == commands_dict["add_task_command"]:
+            add_new_task()    
+        elif command == commands_dict["list_tasks"]:
+            return list_tasks()
+        else:
+            print("Speech output not supported in Colab.")
+
     
 if __name__ == "__main__":
     audio_virtual_assistant()
