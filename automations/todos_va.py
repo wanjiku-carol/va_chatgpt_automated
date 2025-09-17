@@ -30,11 +30,10 @@ def listen_to_user():
         audio = r.listen(source)
         text = r.recognize_google(audio)
         
-        stop_listening = r.listen_in_background(source, callback)
-        if text.lower() == "stop":
-            stop_listening
+    stop_listening = r.listen_in_background(source, callback)
+        
     
-    return text.lower() # Small delay to avoid busy-waiting
+    return text.lower(), stop_listening # Small delay to avoid busy-waiting
 
 
 def speak(command):
@@ -89,7 +88,7 @@ def add_new_task():
     :param None: The tasks retreived from the user speaking on the microphone.
     :return say_something: Verbal responses from the virtual assistant affirming an added task or listing added tasks 
     """
-    
+
     time.sleep(0.2)
     print("Adding new task ...")
     new_task = listen_to_user()
@@ -125,19 +124,22 @@ def list_tasks():
         
 def audio_virtual_assistant():
     
-    command = listen_to_user()
+    command, stop_listening = listen_to_user()
     
-    while True:     
-        time.sleep(0.1)
-        
+    while True:
         if command == "stop":
+            stop_listening(wait_for_stop=True)
+            print("Recognition stopped.")
             break
-        elif command == commands_dict["add_task_command"]:
-            add_new_task()    
-        elif command == commands_dict["list_tasks"]:
-            return list_tasks()
         else:
-            print("Speech output not supported in Colab.")
+            time.sleep(0.1)
+            if command == commands_dict["add_task_command"]:
+                add_new_task()    
+            elif command == commands_dict["list_tasks"]:
+                list_tasks()
+            else:
+                print("Speech output not supported in Colab.")
+                break
 
     
 if __name__ == "__main__":
