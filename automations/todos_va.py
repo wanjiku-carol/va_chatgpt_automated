@@ -24,16 +24,16 @@ def listen_to_user():
     :param: There are no parameters.
     :return: The text translated from the audio retreived through the microphone.
     """
+    print("Listening ...")
     with sr.Microphone() as source:
         print("Microphone on..")
         r.adjust_for_ambient_noise(source, duration=0.10)
         audio = r.listen(source)
         text = r.recognize_google(audio)
-        
+        if text != "stop":
+            return text
     stop_listening = r.listen_in_background(source, callback)
-        
-    
-    return text.lower(), stop_listening # Small delay to avoid busy-waiting
+    return stop_listening
 
 
 def speak(command):
@@ -68,79 +68,61 @@ commands_dict = {
         "greetings": "Hello. How can I help you today?"
     }
   
-def add_task(task):
+def add_task(task, tasks):
     """
     A helper function that adds tasks to a dictionary to maintiain order 
     :param task: The tasks retreived from the user speaking on the microphone.
     :return added_tasks: A dictionary containing the tasks as the values and 
     incrementing numbers as the keys to maintain order.
     """
-    
-    pass
+    count = 1
 
-_tasks = {}
-
-def add_new_task(): 
-    """
-    TODO: USE THE WHILE OUTSIDE THE FUNCTION
-    The main function that receives todo tasks, saves them in the dictionary, and lists all of the tasks if asked to.
-    The key words that trigger these actions are in the commands_dict.
-    :param None: The tasks retreived from the user speaking on the microphone.
-    :return say_something: Verbal responses from the virtual assistant affirming an added task or listing added tasks 
-    """
-
-    time.sleep(0.2)
-    print("Adding new task ...")
-    new_task = listen_to_user()
-    
-    if new_task not in except_list:
-        count = 1
-        for key, val in _tasks.items():
-            key = count
-            val = new_task
-            _tasks[key] = val
-            print(f'{new_task} has been added added to the todo list')
-            count += 1
-            time.sleep(0.1)
-            print(f'{new_task} has been added to the todo list')
-        return _tasks
-    else:
-        return print("Speech output not supported in Colab.")
-        
-
-
-def list_tasks():
-    print("Retreiving ....")
-    if len(_tasks) == 0:
-        return print("There are no tasks in the todo list")
-    for key, task in _tasks.items():
+    for key, val in tasks.items():
         key = count
-        speak(f"{task}")
-        print(f"{key}. {task}")
-        count += 1
-        time.sleep(0.1)
-    return print("That's all. Best of luck")
+        val = task
+        tasks[key] = val
+        key += 1
+    return tasks        
 
         
-def audio_virtual_assistant():
+def audio_to_text_va():
     
-    command, stop_listening = listen_to_user()
-    
-    while True:
-        if command == "stop":
-            stop_listening(wait_for_stop=True)
+   while True:
+        commands_dict = {
+            "add_task_command": "add new task",
+            "list_tasks": "list my tasks"
+        }
+        tasks = {}
+        command = listen_to_user()
+
+        time.sleep(0.1)
+        if type(command) is not str:
+            command(wait_for_stop=True)
+            print("Recognition stopped.")
+            break
+        elif command == "stop":
+            command(wait_for_stop=True)
             print("Recognition stopped.")
             break
         else:
-            time.sleep(0.1)
             if command == commands_dict["add_task_command"]:
-                add_new_task()    
-            elif command == commands_dict["list_tasks"]:
-                list_tasks()
-            else:
-                print("Speech output not supported in Colab.")
-                break
+                new_task = listen_to_user()
+                time.sleep(0.3)
+                add_task(new_task, tasks)
+                print(f'{new_task} has been added added to the todo list')
+                time.sleep(0.2)
+                speak(f'{new_task} has been added to the todo list')
+
+            if command == commands_dict["list_tasks"] and len(tasks) > 0:
+                speak(f"Listing tasks")
+                time.sleep(0.2)
+                count = 1
+                for key, task in tasks.items():
+                    key = count
+                    speak(f"{key}. {task}")
+                    count += 1
+                    time.sleep(0.2)
 
     
 if __name__ == "__main__":
-    audio_virtual_assistant()
+    audio_to_text_va()
