@@ -1,20 +1,38 @@
+import os
 import fitz  # PyMuPDF
 import docx
-import os
 from gtts import gTTS
+from pydub import AudioSegment
+from pydub.silence import split_on_silence
 
-def extract_text_from_pdf(pdf_path):
-    """Extract text from a PDF file."""
-    text = ""
-    doc = fitz.open(pdf_path)
-    for page in doc:
-        text += page.get_text("text") + "\n"
-    return text.strip()
+class ReadAudio:
+    """
+    TODO: Research pydub.silence.split_on_silence
+    Class ReadAudio will implement reading of a text file into audio
+    function extract_text_from_pdf & extract_text_from_docx: Extracts text from a PDF or Word document.
+    function text_to_speech: Converts the extracted text into speech using gTTS.
+    Saves the speech as an MP3 file.
+    paramenters:
+        Input: pdf_path or docx_path
+        Output: Audio mp3 of the files
+    Packagaes: PyMuPDF (for PDFs), python-docx (for Word files), and gTTS (Google Text-to-Speech) to generate audio.
+    """
+    def __init__(self, pdf_path=None, docx_path=None) -> None:
+        self.pdf_path = pdf_path
+        self.docx_path = docx_path
 
-def extract_text_from_docx(docx_path):
-    """Extract text from a Word file."""
-    doc = docx.Document(docx_path)
-    return "\n".join([para.text for para in doc.paragraphs]).strip()
+    def extract_text_from_pdf(self):
+        """Extract text from a PDF file."""
+        text = ""
+        doc = fitz.open(self.pdf_path)
+        for page in doc:
+            text += page.get_text("text") + "\n"
+        return text.strip()
+    # utils?
+    def extract_text_from_docx(self):
+        """Extract text from a Word file."""
+        doc = docx.Document(self.docx_path)
+        return "\n".join([para.text for para in doc.paragraphs]).strip()
 
 def text_to_speech(text, output_audio):
     """Convert text to speech and save as an audio file."""
@@ -42,3 +60,12 @@ def process_file(file_path):
 # Example usage
 file_path = "example.pdf"  # Change this to your actual file path
 process_file(file_path)
+
+
+def run():
+    directory_name = "pdf_docx_files"
+    file_name = "1-introduction-bash-shell-linux-mac-os-m1-overview-slides"
+    pdffile = os.path.join(directory_name, file_name)
+    pdf_file_instance = ReadAudio(pdffile)
+    docx_file_instance = ReadAudio()
+    return text_to_speech(pdf_file_instance.extract_text_from_pdf, output_audio=None)

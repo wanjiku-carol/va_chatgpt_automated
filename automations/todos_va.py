@@ -1,69 +1,128 @@
-import os
+#!/usr/bin/env python3.9
+
+import time
 import speech_recognition as sr
 import pyttsx3
 
 # Initialize the speech recognition and text-to-speech engines
-r = sr.Reognizer()
-engine = pyttsx3.init()
-file_path = os.dir
 
-
-
-# Define a function to speak the text
-def speak(text):
-    engine.say(text)
-    engine.runAndWait()
-
-# Define funtion to recognise speech
-def listen():
-    with sr.Microphone() as source:
-        print("Speak now ...")
-        audio = r.listen(source)
+def callback(recognizer, audio):
     try:
-        text = r.recognise_google(audio)
-        lowecased_text = text.lower()
-        return lowecased_text
+        print("You said: " + recognizer.recognize_google(audio))
+    except sr.UnknownValueError as e:
+        return(f"Could not understand audio. \n Returned Error:{e}") 
+    except sr.RequestError as e:
+        return(f"Could not request results from Google Speech Recognition.\n Returned Error: {e}")
+
+
+r = sr.Recognizer()
+
+def listen_to_user():
+    """
+    This function contains the script for listening to user 
+    input for the key words that are supplied for the todo application.
+    :param: There are no parameters.
+    :return: The text translated from the audio retreived through the microphone.
+    """
+    print("Listening ...")
+    with sr.Microphone() as source:
+        print("Microphone on..")
+        r.adjust_for_ambient_noise(source, duration=0.10)
+        audio = r.listen(source)
+        text = r.recognize_google(audio)
+        if text != "stop":
+            return text
+    stop_listening = r.listen_in_background(source, callback)
+    return stop_listening
+
+
+def speak(command):
+    """
+    It contains the script that captures what the user to says.
+    It stays in a state of waiting for commands that will prompt todo tasks.
+    The keywords will be used for 
+    :param command: An audio format of words spoken by user
+    :return engine.runAndWait(): an object's method for listening to audio prompts
+    """
+    try:
+        engine = pyttsx3.init()
+        engine.say(command)
+        engine.runAndWait()
     except:
-        return None
+        print("Speech output not supported in Colab.")
+        return
 
-def save_task(task, tasks):
+
+
+except_list = [
+    "add new task",
+    "list my tasks",
+    "yes",
+    "no"  
+]
+
+commands_dict = {
+        "add_task_command": "add new task",
+        "list_tasks": "list my tasks",
+        "no_tasks": "There are no tasks in the todo list.",
+        "greetings": "Hello. How can I help you today?"
+    }
+  
+def add_task(task, tasks):
+    """
+    A helper function that adds tasks to a dictionary to maintiain order 
+    :param task: The tasks retreived from the user speaking on the microphone.
+    :return added_tasks: A dictionary containing the tasks as the values and 
+    incrementing numbers as the keys to maintain order.
+    """
+    count = 1
+
+    for key, val in tasks.items():
+        key = count
+        val = task
+        tasks[key] = val
+        key += 1
+    return tasks        
+
+        
+def audio_to_text_va():
     
-    while True:
-        if "stop" in task:
-            break
-        tasks.append(task)
-    return tasks
-
-
-def initialise_app():
-    while True:
-        tasks = []
+   while True:
         commands_dict = {
-           rm_command: "remind me",
-           cl_command:  "create a todo list"
+            "add_task_command": "add new task",
+            "list_tasks": "list my tasks"
         }
-        # listens for user input
-        command = listen()
-        
-        if len(tasks) == 0 and command is None:
-            return "There are no tasks on your todo list"
-        
-        # remind_me_command = "remind me"
-        # create_list_command = "create a todo list" 
-        
-        if commands_dict[rm_command] in command:
-            speak("What would you like me to remind you about?")
-            reminder = listen()
-            speak(f"Sure, I'll remind you to {reminder} later")
-            
-        elif commands_dict[cl_command] in command:
-            speak("What tasks do you want to add?")
-            task = command
-            save_task(task, tasks)
+        tasks = {}
+        command = listen_to_user()
 
-            speak("Here's your todo list")
-            for i, task in enumerate(tasks):
-                speak(f"{i+1}. {task}")
-                
-def read_article(article):
-    pass
+        time.sleep(0.1)
+        if type(command) is not str:
+            command(wait_for_stop=True)
+            print("Recognition stopped.")
+            break
+        elif command == "stop":
+            command(wait_for_stop=True)
+            print("Recognition stopped.")
+            break
+        else:
+            if command == commands_dict["add_task_command"]:
+                new_task = listen_to_user()
+                time.sleep(0.3)
+                add_task(new_task, tasks)
+                print(f'{new_task} has been added added to the todo list')
+                time.sleep(0.2)
+                speak(f'{new_task} has been added to the todo list')
+
+            if command == commands_dict["list_tasks"] and len(tasks) > 0:
+                speak(f"Listing tasks")
+                time.sleep(0.2)
+                count = 1
+                for key, task in tasks.items():
+                    key = count
+                    speak(f"{key}. {task}")
+                    count += 1
+                    time.sleep(0.2)
+
+    
+if __name__ == "__main__":
+    audio_to_text_va()
