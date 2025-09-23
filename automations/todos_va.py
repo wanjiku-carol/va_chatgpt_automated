@@ -5,37 +5,6 @@ import speech_recognition as sr
 import pyttsx3
 
 # Initialize the speech recognition and text-to-speech engines
-
-def callback(recognizer, audio):
-    try:
-        print("You said: " + recognizer.recognize_google(audio))
-    except sr.UnknownValueError as e:
-        return(f"Could not understand audio. \n Returned Error:{e}") 
-    except sr.RequestError as e:
-        return(f"Could not request results from Google Speech Recognition.\n Returned Error: {e}")
-
-
-r = sr.Recognizer()
-
-def listen_to_user():
-    """
-    This function contains the script for listening to user 
-    input for the key words that are supplied for the todo application.
-    :param: There are no parameters.
-    :return: The text translated from the audio retreived through the microphone.
-    """
-    print("Listening ...")
-    with sr.Microphone() as source:
-        print("Microphone on..")
-        r.adjust_for_ambient_noise(source, duration=0.10)
-        audio = r.listen(source)
-        text = r.recognize_google(audio)
-        if text != "stop":
-            return text
-    stop_listening = r.listen_in_background(source, callback)
-    return stop_listening
-
-
 def speak(command):
     """
     It contains the script that captures what the user to says.
@@ -52,6 +21,36 @@ def speak(command):
         print("Speech output not supported in Colab.")
         return
 
+
+def callback(recognizer, audio):
+    try:
+        print("You said: " + recognizer.recognize_google(audio))
+    except sr.UnknownValueError as e:
+        print(f"Could not understand audio. \n Returned Error:{e}") 
+    except sr.RequestError as e:
+        print(f"Could not request results from Google Speech Recognition.\n Returned Error: {e}")
+
+
+r = sr.Recognizer()
+
+def listen_to_user():
+    """
+    This function contains the script for listening to user 
+    input for the key words that are supplied for the todo application.
+    :param: There are no parameters.
+    :return: The text translated from the audio retreived through the microphone.
+    """
+    with sr.Microphone() as source:
+        print("Microphone on and listening ...")
+        r.adjust_for_ambient_noise(source, duration=0.10)
+        audio = r.listen(source)
+        text = r.recognize_google(audio)
+    
+    stop_listening = r.listen_in_background(source, callback)
+    if text == "stop":
+        return stop_listening
+    else:    
+        return text.lower()
 
 
 except_list = [
@@ -87,41 +86,35 @@ def add_task(task, tasks):
         
 def audio_to_text_va():
     
-   while True:
-        commands_dict = {
-            "add_task_command": "add new task",
-            "list_tasks": "list my tasks"
-        }
-        tasks = {}
-        command = listen_to_user()
+    commands_dict = {
+        "add_task_command": "add new task",
+        "list_tasks": "list my tasks"
+    }
+    tasks = {}
+    command = listen_to_user()
 
-        time.sleep(0.1)
-        if type(command) is not str:
-            command(wait_for_stop=True)
-            print("Recognition stopped.")
-            break
-        elif command == "stop":
-            command(wait_for_stop=True)
-            print("Recognition stopped.")
-            break
-        else:
-            if command == commands_dict["add_task_command"]:
-                new_task = listen_to_user()
-                time.sleep(0.3)
-                add_task(new_task, tasks)
-                print(f'{new_task} has been added added to the todo list')
-                time.sleep(0.2)
-                speak(f'{new_task} has been added to the todo list')
+    if command == "stop":
+        command(wait_for_stop=True)
+        print("Recognition stopped.")
+    
+    else:
+        if command == commands_dict["add_task_command"]:
+            new_task = listen_to_user()
+            time.sleep(0.3)
+            add_task(new_task, tasks)
+            print(f'{new_task} has been added added to the todo list')
+            time.sleep(0.2)
+            speak(f'{new_task} has been added to the todo list')
 
-            if command == commands_dict["list_tasks"] and len(tasks) > 0:
-                speak(f"Listing tasks")
+        if command == commands_dict["list_tasks"] and len(tasks) > 0:
+            speak(f"Listing tasks")
+            time.sleep(0.2)
+            count = 1
+            for key, task in tasks.items():
+                key = count
+                speak(f"{key}. {task}")
+                count += 1
                 time.sleep(0.2)
-                count = 1
-                for key, task in tasks.items():
-                    key = count
-                    speak(f"{key}. {task}")
-                    count += 1
-                    time.sleep(0.2)
 
     
 if __name__ == "__main__":
