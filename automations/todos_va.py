@@ -41,15 +41,16 @@ def listen_to_user():
     :return: The text translated from the audio retreived through the microphone.
     """
     with sr.Microphone() as source:
-        print("Microphone on and listening ...")
+        print("=========== Microphone is now listening ========")
+         # Stop listening after 10 seconds of speaking
         r.adjust_for_ambient_noise(source, duration=0.10)
         audio = r.listen(source)
-        text = r.recognize_google(audio)
+    text = r.recognize_google(audio)
     
-    stop_listening = r.listen_in_background(source, callback)
-    if text == "stop":
-        return stop_listening
-    else:    
+    if text.lower() == "stop":
+        print("========== Stopping microphone ... ============")
+        r.listen_in_background(source, callback)
+    else:
         return text.lower()
 
 
