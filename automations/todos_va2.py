@@ -22,3 +22,17 @@ def listen_for_task():
 def add_task(task):
     with open("tasks.txt", "a") as file:
         file.write(f"{task}\n")
+
+def view_tasks():
+    try:
+        with open("tasks.txt", "r") as file:
+            tasks = file.read().splitlines()
+            if tasks:
+                print("Your tasks are:")
+                for task in tasks:
+                    print(f"- {task}")
+            else:
+                print("No tasks found.")
+    except FileNotFoundError:
+        print("The tasks file was not found.")
+
