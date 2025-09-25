@@ -36,3 +36,22 @@ def view_tasks():
     except FileNotFoundError:
         print("The tasks file was not found.")
 
+def delete_task(task):
+    pass
+
+def main():
+    # Add a stop clause to stop listening
+    while True:
+        task = listen_for_task()
+        # confirm if what was said was correct
+        if task:
+            add_task(task)
+            print("Task added!")
+        
+        # View tasks every 5 additions
+        if input("Do you want to view tasks? (yes/no): ").lower() == "yes":
+            view_tasks()
+            
+
+if __name__ == "__main__":
+    main()
