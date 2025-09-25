@@ -18,3 +18,7 @@ def listen_for_task():
         except sr.RequestError as e:
             print(f"Could not request results from Google Speech Recognition service; {e}")
             return None
+
+def add_task(task):
+    with open("tasks.txt", "a") as file:
+        file.write(f"{task}\n")
